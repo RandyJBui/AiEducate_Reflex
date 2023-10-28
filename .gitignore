@@ -1,4 +1,5 @@
 ./credentials.py
+./venv/
 *.db
 
 *.py[cod]
