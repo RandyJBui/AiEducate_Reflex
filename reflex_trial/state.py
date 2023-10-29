@@ -18,7 +18,7 @@ class State(rx.State):
     iter: int=0
     age: str="age:"
     query: str = "ask here!"
-    output: str
+    output: str="LLM's Best response!"
     outputList: list[str]
     buffer: str
     quizString: list[str]
@@ -35,28 +35,8 @@ class State(rx.State):
     promptCount: int
     count: int
     gen: str
-    def quizClicked(self):
-        if self.count < 3:
-                self.count +=1  
-                self.generateQuiz()
-                self.genStringQuiz()
-                pd.set_option('display.max_colwidth',None)
-                #self.percent = model.predict( {"text" : f'Give me a percentage between the accuracy of these two answers: ' + {self.given} + ' and '  + {self.answer} })['response'][0]
-                self.quizList.append((self.gen,self.answer))
-
-        else:
-                self.quizFlip=False
-    @rx.var
-    def quizPrompt(self):
-        return self.quizBuffer
+   
     
-    def genStringQuiz(self):
-        self.gen = self.quizString[self.count].split('/',2)
-        print(self.gen())
-        for i in self.gen[self.count]:
-            self.quizBuffer += i
-            time.sleep(.08)
-            yield
     def log(self):
         request = model.predict({"text": f'{self.boilerPlate}'})
         pd.set_option('display.max_colwidth', None)
@@ -73,21 +53,37 @@ class State(rx.State):
         return out
     
     def generateQuiz(self):
-        self.quizString.append(model.predict( {"text": f'Create a question with answer, seperated with a / on the topic of ' + self.prompts[self.count] + "it should be answerable within 10 words" } )['response'][0])
+        self.quizString.append(model.predict( {"text": f'Create a question with answer, ALWAYS seperated with a / on the topic of ' + self.prompts[self.count] + "it should be answerable within 10 words" } )['response'][0])
         self.given = ( self.quizString[self.count].rsplit( "/",2 ) )
+    def quizClicked(self):
+        if self.count < 3:
+                self.generateQuiz()
+                self.count +=1  
+                self.quizBuffer=""
+                self.gen = self.quizString[self.count].split('/')[0]
 
+                pd.set_option('display.max_colwidth',None)
+                #self.percent = model.predict( {"text" : f'Give me a percentage between the accuracy of these two answers: ' + {self.given} + ' and '  + {self.answer} })['response'][0]
+                #self.quizList.append((self.gen,self.answer))
+
+        else:
+                self.quizFlip=False
+    @rx.var
+    def quizPrompt(self):
+        return self.quizBuffer
     def generate(self):
         self.output = "" 
         if self.iter > 0:
             self.hist.append((self.outputList[self.iter-1], self.quizString[self.iter -1]))
-        if  (self.iter == 2):
+        self.iter += 1  
+        if  (self.iter == 4):
             self.quizFlip=True
             self.iter =0
             self.prompts = self.generalizationFilter(self.quizString)
+            self.quizString.clear()
             self.generateQuiz()
-            self.genStringQuiz()
+            self.quizBuffer = self.quizString[0].split("/")[0]
             self.quizList.append((self.quizBuffer, self.answer))
-            print(self.buffer)
         else:
             self.boilerPlate = "Explain like im " + self.age + "what " + self.query
             self.log()
@@ -97,6 +93,7 @@ class State(rx.State):
                 time.sleep(.08)
                 yield
             self.quizString.append(self.query)
-            self.iter += 1
+           
+
         pass
 

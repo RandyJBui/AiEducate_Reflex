@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reflex_trial import styles
+from reflex_trial import style
 from reflex_trial.components.sidebar import sidebar
 from typing import Callable
 
@@ -31,7 +31,7 @@ def menu_button() -> rx.Component:
                 rx.icon(
                     tag="hamburger",
                     size="4em",
-                    color=styles.text_color,
+                    color=style.text_color,
                 ),
             ),
             rx.menu_list(
@@ -112,9 +112,9 @@ def template(
                 rx.box(
                     rx.box(
                         page_content(),
-                        **styles.template_content_style,
+                        **style.template_content_style,
                     ),
-                    **styles.template_page_style,
+                    **style.template_page_style,
                 ),
                 rx.spacer(),
                 menu_button(),
